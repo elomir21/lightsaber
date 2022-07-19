@@ -295,7 +295,7 @@ class PostPaidTransactions(Transactions):
         )
         result = future.get(timeout=60)
 
-        print(f"sent account {transaction_id} to kafka")
+        print(f"sent transaction {transaction_id} to kafka")
 
     def send_post_paid_transactions(self, producer: KafkaProducer):
         """Send post paid transactions to kafka"""
