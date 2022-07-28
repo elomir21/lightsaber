@@ -136,8 +136,4 @@ class Bills:
 
         :return: None
         """
-        print("Method not implemented yet")
-        """with open(str(os.path.join(ROOT_DIR, "files", "bills.csv")), "r") as files:
-            next(files)
-            with ThreadPoolExecutor(max_workers=24) as executor:
-                executor.map(self.delete_one_bill, files)"""
+        print("Method not implemented yet"):

@@ -37,7 +37,7 @@ class Transactions:
         :return: None
         """
         with open(
-            str(os.path.join(ROOT_DIR, "files", "transaction_100.csv")), "r"
+            str(os.path.join(ROOT_DIR, "files", "transaction_pre_1000.csv")), "r"
         ) as files:
             next(files)
             with ThreadPoolExecutor(max_workers=24) as executor:
@@ -143,7 +143,7 @@ class PrePaidTransactions(Transactions):
         :return: None
         """
         with open(
-            str(os.path.join(ROOT_DIR, "files", "transaction_1000.csv")), "r"
+            str(os.path.join(ROOT_DIR, "files", "transaction_pre_1000.csv")), "r"
         ) as files:
             next(files)
             for file in files:
