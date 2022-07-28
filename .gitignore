@@ -1,3 +1,4 @@
 # directores
+.venv/
 __pycache__/
 files/
