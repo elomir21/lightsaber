@@ -2,13 +2,12 @@ import argparse
 import timeit
 from kafka import BrokerConnection, KafkaProducer
 from modules.accounts import Accounts
+from modules.balances import Balances
 from modules.bills import Bills
 from modules.clients import Clients
 from modules.credit_card import CreditCards
 from modules.limits import Limits
-from modules.transactions import PrePaidTransactions
-from modules.transactions import PostPaidTransactions
-from modules.transactions import Transactions
+from modules.transactions import Transactions, PrePaidTransactions, PostPaidTransactions
 from routes import URL
 
 
@@ -801,6 +800,61 @@ def main() -> None:
         help="The available amount currency",
     )
 
+    balances = parser.add_argument_group("balances", "The balances")
+
+    balances.add_argument(
+        "-sob_1",
+        "--send_one_balance",
+        action="store_true",
+        help="Send one balance to kafka",
+    )
+
+    balances.add_argument(
+        "-sb_1",
+        "--send_balances",
+        action="store_true",
+        help="Send balances to kafka",
+    )
+
+    balances_parameters = parser.add_argument_group(
+        "balances_parameters", "The balances parameters"
+    )
+
+    balances_parameters.add_argument(
+        "-rd",
+        "--request_date",
+        metavar="request_date",
+        help="The request date",
+    )
+
+    balances_parameters.add_argument(
+        "-ba_1",
+        "--blocked_amount",
+        metavar="blocked_amount",
+        help="The blocked amount",
+    )
+
+    balances_parameters.add_argument(
+        "-bac",
+        "--blocked_amount_currency",
+        metavar="blocked_amount_currency",
+        help="The blocked amount currency",
+    )
+
+    balances_parameters.add_argument(
+        "-ai_1",
+        "--automatically_invested_amount",
+        metavar="automatically_invested_amount",
+        help="The automatically invested amount balance",
+    )
+
+    balances_parameters.add_argument(
+        "-aic",
+        "--automatically_invested_amount_currency",
+        metavar="automatically_invested_amount_currency",
+        help="The automatically invested amount currency of balance",
+    )
+
     args = parser.parse_args()
 
     if args.send_one_client:
@@ -1258,6 +1312,51 @@ def main() -> None:
         stop = timeit.default_timer()
         print(f"time: {round(stop - start, 3)}s")
 
+    elif args.send_one_balance:
+        if (
+            args.account_id
+            and args.client_id
+            and args.request_id
+            and args.request_date
+            and args.available_amount
+            and args.available_amount_currency
+            and args.blocked_amount
+            and args.blocked_amount_currency
+            and args.automatically_invested_amount
+            and args.automatically_invested_amount_currency
+        ):
+            balance = Balances()
+            balance.send_one_balance(
+                KAFKA_PRODUCER,
+                args.account_id,
+                args.client_id,
+                args.request_id,
+                args.request_date,
+                args.available_amount,
+                args.available_amount_currency,
+                args.blocked_amount,
+                args.blocked_amount_currency,
+                args.automatically_invested_amount,
+                args.automatically_invested_amount_currency,
+            )
+        else:
+            print(
+                f"verify if you have passed all parameters needed: \n"
+                f"--account_id or -ai \n"
+                f"--client_id or -ci \n"
+                f"--request_id or -ri \n"
+                f"--request_date or -rd \n"
+                f"--available_amount or -aa \n"
+                f"--available_amount_currency or -aac \n"
+                f"--blocked_amount or -ba_1 \n"
+                f"--blocked_amount_currency or -bac \n"
+                f"--automatically_invested_amount or -aia \n"
+                f"--automatically_invested_amount_currency or -aiac \n"
+            )
+    elif args.send_balances:
+        balance = Balances()
+        balance.send_balances(KAFKA_PRODUCER)
+
     else:
         print(
             f"choose a valid option: \n"
@@ -1280,49 +1379,54 @@ def main() -> None:
             f"--send_bills or -sb \n"
             f"--delete_bills or -db \n"
             f"--send_one_credit_card_limit \n"
-            f"--send_credit_card_limits \n\n"
+            f"--send_credit_card_limits \n"
+            f"--send_one_balance or -sob_1 \n"
+            f"--send_balances or -sb_1 \n\n"
             f"examples: \n"
-            f"python3 filename.py --send_one_client --client_id test123 --cpf_number 12345678900 \n"
-            f"python3 filename.py --delete_one_client --client_id test123 \n"
-            f"python3 filename.py --send_clients \n"
-            f"python3 filename.py --delete_clients \n"
-            f"python3 filename.py --send_one_account --compe_code 001 --client_id account_test_1"
+            f"python3 src/filename.py --send_one_client --client_id test123 --cpf_number 12345678900 \n"
+            f"python3 src/filename.py --delete_one_client --client_id test123 \n"
+            f"python3 src/filename.py --send_clients \n"
+            f"python3 src/filename.py --delete_clients \n"
+            f"python3 src/filename.py --send_one_account --compe_code 001 --client_id account_test_1"
             f"--branch_code 0001 --number 00000 --check_digit 0 --account_type CONTA_DEPOSITO_A_VISTA "
             f'--account_subtype INDIVIDUAL --description "the test request" --currency BRL --account_id 0 \n'
-            f"python3 filename.py --delete_one_account --account_id test123 \n"
-            f"python3 filename.py --send_accounts \n"
-            f"python3 filename.py --delete_accounts \n"
-            f"python3 filename.py --send_one_pre_paid_transaction --transaction_id 1 "
+            f"python3 src/filename.py --delete_one_account --account_id test123 \n"
+            f"python3 src/filename.py --send_accounts \n"
+            f"python3 src/filename.py --delete_accounts \n"
+            f"python3 src/filename.py --send_one_pre_paid_transaction --transaction_id 1 "
             f'--transaction_date "2022-01-01 00:00:00.000" --amount 1.0 --transaction_currency BRL '
             f"--credit_debit_type CREDITO --transaction_name transaction --category uber "
             f"--account_id 1 --request_id 1 --partie_person_type PESSOA_NATURAL "
             f"--partie_cnpj_cpf 00000000000 --transaction_model_type PIX --partie_compe_code 001 "
             f"--partie_branch_code 11245 --partie_number 158964 --partie_check_digit 1 "
             f"--completed_authorised_payment_type TRANSACAO_EFETIVADA \n"
-            f"python3 filename.py --delete_one_transaction --transaction_id 1 \n"
-            f"python3 filename.py --send_one_credit_card --credit_card_account_id 321 --client_id client123 --name test "
+            f"python3 src/filename.py --delete_one_transaction --transaction_id 1 \n"
+            f"python3 src/filename.py --send_one_credit_card --credit_card_account_id 321 --client_id client123 --name test "
             f'--product_type virtual --product_additional_info test --credit_card_network "master card" --company_cnpj 001 '
             f"--payment_method "
             + '\'{"identificationNumber": "0084", "isMultipleCreditCard": true, "active": true}\''
             + "\n"
-            f"python3 filename.py --delete_one_credit_card --account_id 1 \n"
-            f"python3 filename.py --send_credit_card \n"
-            f"python3 filename.py --delete_credit_card \n"
-            f"python3 filename.py --send_one_bill --credit_card_account_id 1 --bill_total_amount 100 --bill_id 1 "
+            f"python3 src/filename.py --delete_one_credit_card --account_id 1 \n"
+            f"python3 src/filename.py --send_credit_card \n"
+            f"python3 src/filename.py --delete_credit_card \n"
+            f"python3 src/filename.py --send_one_bill --credit_card_account_id 1 --bill_total_amount 100 --bill_id 1 "
             f"--due_date 2022-07-01 --is_instalment true --bill_minimum_amount 1 --bill_minimum_amount_currency BRL "
             f"--bill_total_amount_currency BRL --finance_charges "
             + '\'{"type": "mora", "additionalInfo": "test", "amount": 25, "currency": "BRL"}\''
             f"--payments "
             + '\'{"valueType": "test", "paymentDate": "2022-07-22", "paymentMode": "dinheiro", "amount": 100, "currency": "BRL"}\''
             + "\n"
-            f"python3 filename.py --delete_one_bill --bill_id 1 \n"
-            f"python3 filename.py --send_bills \n"
-            f"python3 filename.py --delete_bills \n"
-            f"python3 filename.py --send_one_credit_card_limit --credit_card_account_id 123321 --available_amount 1 "
+            f"python3 src/filename.py --delete_one_bill --bill_id 1 \n"
+            f"python3 src/filename.py --send_bills \n"
+            f"python3 src/filename.py --delete_bills \n"
+            f"python3 src/filename.py --send_one_credit_card_limit --credit_card_account_id 123321 --available_amount 1 "
             f"--consolidation_type CONSOLIDADO --credit_line_limit_type LIMITE_CREDITO_TOTAL --is_limit_flexible true "
             f"--limit_amount 10 --limit_amount_currency BRL --line_name CREDITO_A_VISTA --line_name_additional_info test "
             f"--used_amount 1 --identification_number 0084 --used_amount_currency BRL --available_amount_currency BRL \n"
-            f"python3 filename.py --send_credit_card_limits \n"
+            f"python3 src/filename.py --send_credit_card_limits \n"
+            f"python3 src/kafka_producer.py --send_one_balance --account_id 300 --client_id elomirjunior --request_id 2 "
+            f'--request_date "2022-08-11 00:00:00.000" --available_amount 100 --available_amount_currency BRL --blocked_amount 0 '
+            f"--blocked_amount_currency BRL --automatically_invested_amount 0 --automatically_invested_amount_currency BRL \n"
         )
 
 
