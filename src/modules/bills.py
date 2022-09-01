@@ -1,4 +1,4 @@
-mport os
+import os
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
@@ -129,7 +129,9 @@ class Bills:
             bill_id = bill_id.split(",")[0]
 
         payload = {"billid": bill_id, "isDeleteTransaction": True}
-        response = requests.delete(self.base_url + self.bills_url, params=payload, verify=False)
+        response = requests.delete(
+            self.base_url + self.bills_url, params=payload, verify=False
+        )
 
         print(
             f"The bill {bill_id} was deleted with status code: {response.status_code}"
