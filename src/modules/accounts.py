@@ -2,8 +2,12 @@ import os
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from urllib3.exceptions import InsecureRequestWarning
 from kafka import KafkaProducer
 from config.definitions import ROOT_DIR
+
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 class Accounts:
@@ -118,7 +122,9 @@ class Accounts:
         if "," in account_id:
             account_id = account_id.split(",")[6].strip("\n")
 
-        response = requests.delete(self.base_url + self.account_url + account_id)
+        response = requests.delete(
+            self.base_url + self.account_url + account_id, verify=False
+        )
 
         print(
             f"The account {account_id} was deleted with status code: {response.status_code}"

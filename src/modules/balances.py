@@ -1,6 +1,5 @@
 import os
 import json
-import requests
 from concurrent.futures import ThreadPoolExecutor
 from kafka import KafkaProducer
 from config.definitions import ROOT_DIR

@@ -1,9 +1,13 @@
-import os
+mport os
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from urllib3.exceptions import InsecureRequestWarning
 from kafka import KafkaProducer
 from config.definitions import ROOT_DIR
+
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 class Bills:
@@ -125,7 +129,7 @@ class Bills:
             bill_id = bill_id.split(",")[0]
 
         payload = {"billid": bill_id, "isDeleteTransaction": True}
-        response = requests.delete(self.base_url + self.bills_url, params=payload)
+        response = requests.delete(self.base_url + self.bills_url, params=payload, verify=False)
 
         print(
             f"The bill {bill_id} was deleted with status code: {response.status_code}"

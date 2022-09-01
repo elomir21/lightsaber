@@ -2,8 +2,12 @@ import os
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from urllib3.exceptions import InsecureRequestWarning
 from kafka import KafkaProducer
 from config.definitions import ROOT_DIR
+
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 class Clients:
@@ -42,7 +46,9 @@ class Clients:
         """
         with open(str(os.path.join(ROOT_DIR, "files", "client.csv")), "r") as files:
             next(files)
+            count = 0
             for file in files:
+                count += 1
                 client = file.split(",")[0]
                 cpf = file.split(",")[1].strip("\n")
 
@@ -53,7 +59,7 @@ class Clients:
                 )
                 result = future.get(timeout=60)
 
-                print(f"sent client {client} to kafka")
+                print(f"{count} sent client {client} to kafka")
 
     def delete_one_client(self, client_id: str) -> None:
         """Delete one client from pluggy api
@@ -65,7 +71,9 @@ class Clients:
         if "," in client_id:
             client_id = client_id.split(",")[0]
 
-        response = requests.delete(self.base_url + self.client_url + client_id)
+        response = requests.delete(
+            self.base_url + self.client_url + client_id, verify=False
+        )
 
         print(
             f"The client {client_id} was deleted with status code: {response.status_code}"

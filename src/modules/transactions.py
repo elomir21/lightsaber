@@ -2,8 +2,12 @@ import os
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from urllib3.exceptions import InsecureRequestWarning
 from kafka import KafkaProducer
 from config.definitions import ROOT_DIR
+
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 class Transactions:
@@ -24,7 +28,7 @@ class Transactions:
             transaction_id = transaction_id.split(",")[10]
 
         response = requests.delete(
-            self.base_url + self.transaction_url + transaction_id
+            self.base_url + self.transaction_url + transaction_id, verify=False
         )
 
         print(
@@ -111,7 +115,7 @@ class PrePaidTransactions(Transactions):
         data = {
             "transactionId": transaction_id,
             "transactionDate": transaction_date,
-            "amount": amount,
+            "amount": float(amount),
             "transactionCurrency": transaction_currency,
             "creditDebitType": credit_debit_type,
             "transactionName": transaction_name,

@@ -2,8 +2,12 @@ import os
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from urllib3.exceptions import InsecureRequestWarning
 from kafka import KafkaProducer
 from config.definitions import ROOT_DIR
+
+
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 class CreditCards:
@@ -119,7 +123,7 @@ class CreditCards:
             credit_card_account_id = credit_card_account_id.split(",")[0].strip("\n")
 
         response = requests.delete(
-            self.base_url + self.credit_card_url + credit_card_account_id
+            self.base_url + self.credit_card_url + credit_card_account_id, verify=False
         )
 
         print(
